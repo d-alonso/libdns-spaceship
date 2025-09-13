@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      LIBDNS_SPACESHIP_APIKEY: ${{ secrets.LIBDNS_SPACESHIP_APIKEY }}
+      LIBDNS_SPACESHIP_APISECRET: ${{ secrets.LIBDNS_SPACESHIP_APISECRET }}
+      LIBDNS_SPACESHIP_ZONE: ${{ secrets.LIBDNS_SPACESHIP_ZONE }}
+      LIBDNS_SPACESHIP_BASEURL: ${{ secrets.LIBDNS_SPACESHIP_BASEURL }}
+      LIBDNS_SPACESHIP_PAGESIZE: ${{ secrets.LIBDNS_SPACESHIP_PAGESIZE }}
+      LIBDNS_SPACESHIP_TIMEOUT: ${{ secrets.LIBDNS_SPACESHIP_TIMEOUT }}
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.18'
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ${{ github.workspace }}/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Build
+        run: go build ./...
+
+      - name: Run tests
+        run: |
+          if [[ -n "$LIBDNS_SPACESHIP_APIKEY" && -n "$LIBDNS_SPACESHIP_APISECRET" ]]; then
+            echo "Running live tests with API credentials"
+            LIBDNS_SPACESHIP_RUN_LIVE=1 go test -v ./...
+          else
+            echo "Running tests without API credentials"
+            go test -v ./...
+          fi
