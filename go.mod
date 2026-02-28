@@ -1,4 +1,4 @@
-module github.com/libdns/spaceship
+module github.com/d-alonso/libdns-spaceship
 
 go 1.18
 
