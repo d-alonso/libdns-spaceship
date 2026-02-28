@@ -14,7 +14,7 @@ func (p *Provider) toLibdnsRR(sr spaceshipRecordUnion, zone string) libdns.Recor
 	// normalize name relative to zone
 	name := strings.TrimSuffix(sr.Name, "."+zone)
 	name = strings.TrimSuffix(name, ".")
-	if name == zone || sr.Name == zone {
+	if name == zone || sr.Name == zone || sr.Name == "@" {
 		name = ""
 	}
 	ttl := time.Duration(sr.TTL) * time.Second
